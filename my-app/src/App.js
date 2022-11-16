@@ -2,13 +2,15 @@ import logo from './logo.svg';
 import './App.css';
 import { useState, useEffect } from 'react';
 import {useCookies} from 'react-cookie'
+import {useNavigate} from 'react-router-dom'
 import ArticleList from './components/ArticleList';
 import Form from './components/Form';
 
 function App() {
     const [articles, setArticles] = useState([])
     const [editArticle, setEditArticle] = useState(null)
-    const [token] = useCookies(['mytoken'])
+    const [token, setToken, removeToken] = useCookies(['mytoken'])
+    let navigate = useNavigate()
 
     useEffect(() => {
         fetch('http://127.0.0.1:8000/api/articles/', {
@@ -22,6 +24,12 @@ function App() {
         .then(resp => setArticles(resp))
         .catch(error => console.log(error))
     }, [])
+
+    useEffect(() => {
+      if (!token['mytoken']) {
+          navigate('/')
+      }
+    }, [token])
 
     const editBtn = (article) => {
       setEditArticle(article)
@@ -63,6 +71,10 @@ function App() {
         setArticles(new_articles)
     }
 
+    const logoutBtn = () => {
+        removeToken(['mytoken'])
+    }
+
     return (
         <div className='App'>
             <div className='row'>
@@ -71,8 +83,13 @@ function App() {
                     <br/>
                     <br/>
                 </div>
+                
                 <div className='col'>
-                    <button onClick={articleForm} className='btn btn-primary'>Insert article</button>
+                    <button onClick = {articleForm} className='btn btn-primary'>Insert article</button>
+                </div>
+
+                <div className='col'>
+                    <button onClick = {logoutBtn} className='btn btn-primary'>Logout</button>
                 </div>
             </div> 
             <ArticleList articles = {articles} editBtn = {editBtn} deleteBtn = {deleteBtn}></ArticleList>
